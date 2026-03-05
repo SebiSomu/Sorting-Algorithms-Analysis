@@ -1,0 +1,94 @@
+# Visual Studio 2026 .gitignore
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# User-specific files (DotSettings)
+*.dnspy
+*.DotSettings.user
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Re]leases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio 2017/2019/2022 cache files
+.vs/
+# Generated files
+Generated\ Files/
+
+# MSTest test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# All Others
+*.aps
+*.bak
+*.cache
+*.ilk
+*.log
+*.ncb
+*.obj
+*.pch
+*.pdb
+*.sbr
+*.scc
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+*.vspscc
+*.vssscc
+*.g.h
+*.g.cpp
+*.g.hpp
+*.idb
+*.intermediate.manifest
+*.res
+*.tlog
+*.unsuccessfulbuild
+*.lastbuildstate
+
+# Visual C++ Project Specific
+ipch/
+*.opensdf
+*.sdf
+*.cache
+*.VC.db
+*.VC.opendb
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# Visual Studio Code
+.vscode/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeSettings.json
+mkspecs/
+vcpkg/
+
+# Local history
+.history/
