@@ -37,6 +37,19 @@ std::vector<int> generateRandomVector(int size, int minVal = 1, int maxVal = 100
     return vec;
 }
 
+std::vector<int> generateNormalVector(int size, double mean = 500.0, double stddev = 50.0) {
+    std::vector<int> vec(size);
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::normal_distribution<double> dis(mean, stddev);
+
+    for (int i = 0; i < size; i++) {
+        int val = static_cast<int>(std::round(dis(gen)));
+        vec[i] = std::max(1, std::min(10000, val));
+    }
+    return vec;
+}
+
 std::vector<int> generateSortedVector(int size) {
     std::vector<int> vec(size);
     for (int i = 0; i < size; i++) {
@@ -785,89 +798,125 @@ void treeSort(std::vector<int>& data, Counter& cnt) {
 }
 
 // ══════════════════════════════════════════════
-// BENCHMARK & CSV EXPORT
+// TABLE DISPLAY
 // ══════════════════════════════════════════════
 
-void runBenchmarks() {
-    std::vector<int> sizes;
-    for (int n = 1000; n <= 10000; n += 1000)
-        sizes.push_back(n);
-    for (int n = 12000; n <= 28000; n += 2000) 
-        sizes.push_back(n);
-    for (int n = 30000; n <= 50000; n += 4000)
-        sizes.push_back(n);
-    
+std::string fmtNum(long long n) {
+    std::string s = std::to_string(n);
+    int pos = (int)s.length() - 3;
+    while (pos > 0) {
+        s.insert(pos, ",");
+        pos -= 3;
+    }
+    return s;
+}
+
+std::string centre(const std::string& s, int w) {
+    int pad = w - (int)s.size();
+    if (pad <= 0) return s;
+    int l = pad / 2;
+    int r = pad - l;
+    return std::string(l, ' ') + s + std::string(r, ' ');
+}
+
+void analyzeSortingPerformance() {
+    std::vector<int> sizes = { 1500, 3000, 4500, 6000, 7500 };
 
     using SortFn = std::function<void(std::vector<int>&, Counter&)>;
     std::vector<std::tuple<std::string, SortFn, bool>> algorithms = {
-        {"Swap Sort",          swapSort,           true },
-        {"Bubble Sort",        bubbleSort,          true },
-        {"Selection Sort",     selectionSort,       true },
-        {"Insertion Sort",     insertionSort,       false},
-        {"Merge Sort",         mergeSortWrapper,    false},
-        {"Quick Sort (Rec)",   quickSortRecWrapper, true },
-        {"Quick Sort (Iter)",  quickSortWrapper,    true },
-        {"Bucket Sort",        bucketSort,          false},
-        {"Intro Sort",         introSort,           false},
-        {"Tim Sort",           timSort,             false},
-        {"Bitonic Sort",       bitonicSort,         true },
-        {"Tree Sort",          treeSort,            false},
-        {"Count Sort",         countSort,           false},
-        {"Radix Sort",         radixSort,           false},
-        {"Heap Sort",          heapSort,            true },
-        {"Shell Sort",         shellSort,           false},
-        {"Cocktail Sort",      cocktailSort,        true },
-        {"Comb Sort",          combSort,            true },
-        {"Gnome Sort",         gnomeSort,           true },
-        {"Pigeonhole Sort",    pigeonholeSort,      false},
+        {"Swap Sort", swapSort, true },
+        {"Bubble Sort", bubbleSort, true },
+        {"Selection Sort", selectionSort, true },
+        {"Insertion Sort", insertionSort, false},
+        {"Merge Sort", mergeSortWrapper, false},
+        {"Quick Sort", quickSortWrapper, true },
+        {"Bucket Sort", bucketSort, false},
+        {"Intro Sort", introSort, false},
+        {"Tim Sort", timSort, false},
+        {"Bitonic Sort", bitonicSort, true },
+        {"Tree Sort", treeSort, false},
+        {"Count Sort", countSort, false},
+        {"Radix Sort", radixSort, false},
+        {"Heap Sort", heapSort, true },
+        {"Shell Sort", shellSort, false},
+        {"Cocktail Sort", cocktailSort, true },
+        {"Comb Sort", combSort, true },
+        {"Gnome Sort", gnomeSort, true },
+        {"Pigeonhole Sort", pigeonholeSort, false},
     };
 
-    // CSV header
-    std::cout << "algorithm,case,n,time_ms,count,count_type\n";
+    const int NAME_W = 18;
+    const int CELL_W = 26;
 
-    // Cases: random, sorted, reversed
-    std::vector<std::pair<std::string, std::function<std::vector<int>(int)>>> cases = {
-        {"sorted",   [](int s) { return generateSortedVector(s); }},
-        {"reversed", [](int s) { return generateReverseSortedVector(s); }},
-    };
+    auto printTable = [&](
+        const std::string& title,
+        auto dataGenFunc,
+        bool includeRecQuickSort = false)
+        {
+            std::cout << "\n\n>>> " << title << ":\n";
+            std::cout << "  (sw = swaps,  wr = element writes)\n";
 
-    for (const auto& [caseName, dataGen] : cases) {
-        for (const auto& [algName, fn, isSwap] : algorithms) {
-
-            // Skip Quick Sort (Rec) entirely for sorted and reversed
-            if (algName == "Quick Sort (Rec)")
-                continue;
-
-            // For sorted: skip first 6 algorithms (already in CSV)
-            if (caseName == "sorted") {
-                bool skip = (algName == "Swap Sort" ||
-                    algName == "Bubble Sort" ||
-                    algName == "Selection Sort" ||
-                    algName == "Insertion Sort" ||
-                    algName == "Merge Sort");
-                if (skip) continue;
+            std::vector<std::tuple<std::string, SortFn, bool>> current;
+            if (includeRecQuickSort) {
+                for (const auto& [name, fn, isSwap] : algorithms) {
+                    if (name == "Quick Sort") {
+                        current.emplace_back("Quick Sort (Rec)", quickSortRecWrapper, true);
+                        current.emplace_back("Quick Sort (Iter)", quickSortWrapper, true);
+                    }
+                    else {
+                        current.emplace_back(name, fn, isSwap);
+                    }
+                }
+            }
+            else {
+                current = algorithms;
             }
 
-            for (int n : sizes) {
-                std::vector<int> data = dataGen(n);
-                auto [ms, count] = measureExecutionTime(fn, data);
-
-                std::cout << std::fixed << std::setprecision(4)
-                    << algName << ","
-                    << caseName << ","
-                    << n << ","
-                    << ms << ","
-                    << count << ","
-                    << (isSwap ? "sw" : "wr")
-                    << "\n";
-
-                std::cout.flush();
+            // Header
+            std::cout << std::left << std::setw(NAME_W) << "Algorithm" << " |";
+            for (int s : sizes) {
+                std::string lbl = "n=" + std::to_string(s);
+                std::cout << centre(lbl, CELL_W) << "|";
             }
-        }
-    }
+            std::cout << "\n";
+
+            // Separator
+            std::cout << std::string(NAME_W, '-') << "-|";
+            for (size_t i = 0; i < sizes.size(); i++) {
+                std::cout << std::string(CELL_W, '-') << "|";
+            }
+            std::cout << "\n";
+
+            // Rows
+            for (const auto& [name, fn, isSwap] : current) {
+                std::cout << std::left << std::setw(NAME_W) << name << " |";
+
+                for (int size : sizes) {
+                    std::vector<int> testData = dataGenFunc(size);
+                    auto [ms, count] = measureExecutionTime(fn, testData);
+
+                    std::ostringstream cell;
+                    cell << std::fixed << std::setprecision(2) << ms << " ms"
+                        << "  " << fmtNum(count) << (isSwap ? " sw" : " wr");
+
+                    std::cout << centre(cell.str(), CELL_W) << "|";
+                }
+                std::cout << "\n";
+            }
+        };
+
+    printTable("Testing on vectors with randomly generated numbers",
+        [](int s) { return generateRandomVector(s); }, true);
+    printTable("Testing on vectors with normal distribution (mean=500, stddev=50)",
+        [](int s) { return generateNormalVector(s); }, false);
+    printTable("Testing on ascending sorted vectors",
+        [](int s) { return generateSortedVector(s); }, false);
+    printTable("Testing on descending sorted vectors",
+        [](int s) { return generateReverseSortedVector(s); }, false);
 }
 
 int main() {
-    runBenchmarks();
+    analyzeSortingPerformance();
+    std::cout << "\nAnalysis complete!\n";
     return 0;
 }
