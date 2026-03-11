@@ -81,17 +81,17 @@ Each plot shows:
 
 ## Sample Results
 
-### [PLACEHOLDER — insert graph image here, e.g. Bubble Sort]
+### Swap Sort — O(n²)
 
-![Bubble Sort regression](images/bubble_sort.png)
+![Swap Sort regression](assets/swap_sort.png)
 
-### [PLACEHOLDER — insert graph image here, e.g. Quick Sort]
+### Bubble Sort — O(n²)
 
-![Quick Sort regression](images/quick_sort.png)
+![Bubble Sort regression](assets/bubble_sort.png)
 
-### [PLACEHOLDER — insert graph image here, e.g. Merge Sort vs linear sorts comparison]
+### Tim Sort — O(n log n)
 
-![Merge Sort regression](images/merge_sort.png)
+![Tim Sort regression](assets/tim_sort.png)
 
 ---
 
@@ -100,9 +100,9 @@ Each plot shows:
 - All O(n²) algorithms confirm theoretical complexity with R² > 0.999 on random input.
 - Quick Sort (Recursive) degenerates on sorted/reversed input due to last-element pivot selection, causing O(n²) behavior and stack overflow risk — excluded from those cases.
 - Quick Sort (Iterative) avoids stack overflow using an explicit stack, maintaining O(log n) space.
-- Intro Sort, Tim Sort achieve near-identical performance to Quick Sort on random input while guaranteeing O(n log n) worst case.
+- Intro Sort and Tim Sort achieve near-identical performance to Quick Sort on random input while guaranteeing O(n log n) worst case.
 - Linear sorts (Count, Radix, Pigeonhole, Bucket) are orders of magnitude faster for bounded integer ranges.
-- Normal distribution input produces similar results to uniform for comparison-based algorithms, while bucket-based algorithms show sensitivity to value concentration.
+- On sorted input, swap-based O(n²) algorithms perform zero swaps — R² is undefined for a constant zero sequence, which is itself a valid and expected result.
 
 ---
 
