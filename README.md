@@ -6,11 +6,14 @@ A benchmark suite for 20 sorting algorithms implemented in C++, with Python-base
 
 ## Project Structure
 
-```
+```text
 Sorting_Algorithms_Analysis/
     Sorting_Algorithms_Analysis.cpp   # C++ benchmark source
-    sorting-results.csv               # Benchmark output data
-    sorting_analysis_all.ipynb        # Python regression notebook
+    results/
+        sorting-results.csv           # Benchmark output data
+        sorting_analysis.ipynb        # Python regression notebook
+        ribbon-plots.R                # R script for sensitivity and ribbon plots
+        ribbon_*.png                  # Generated ribbon plots and charts
     README.md
 ```
 
@@ -55,14 +58,14 @@ To regenerate the benchmark data:
 
 ```powershell
 g++ -O2 -std=c++17 -o sorting Sorting_Algorithms_Analysis.cpp
-.\sorting.exe | Tee-Object -FilePath sorting-results.csv
+.\sorting.exe | Tee-Object -FilePath results\sorting-results.csv
 ```
 
 ---
 
 ## Regression Analysis
 
-The Python notebook (`sorting_analysis_all.ipynb`) fits each algorithm's benchmark data to its theoretical complexity curve using `scipy.optimize.curve_fit`.
+The Python notebook (`results/sorting_analysis.ipynb`) fits each algorithm's benchmark data to its theoretical complexity curve using `scipy.optimize.curve_fit`.
 
 | Complexity | Model function |
 |---|---|
@@ -95,6 +98,23 @@ Each plot shows:
 
 ---
 
+## Input Sensitivity & Ribbon Plots
+
+A complementary R script (`results/ribbon-plots.R`) uses `ggplot2` to analyze and visualize the variance in performance across different input conditions (random, sorted, descending). These visualizations demonstrate how sensitive each algorithm is to the initial order of the data.
+
+- **Ribbon Plots (`results/ribbon_*.png`)**: These plots track the average execution time (solid line) along with the spread between the minimum and maximum execution times (shaded area/ribbon) for each input size `n`. They are generated holistically (`ribbon_all_classes.png`) and broken down by theoretical complexity class. Wide ribbons indicate high sensitivity to input order (e.g., Insertion Sort excelling on sorted data), while narrow ribbons indicate consistent performance regardless of input.
+- **Sensitivity Analysis (`results/ribbon_sensitivity.png`)**: A bar plot ranking each algorithm's sensitivity based on the ratio `(max_time - min_time) / mean_time` evaluated at the maximum measured `n`.
+
+Sample visualizations:
+
+**Input Sensitivity per Algorithm**
+![Sensitivity Analysis](results/ribbon_sensitivity.png)
+
+**Mean Time with Input Sensitivity (All Classes)**
+![Ribbon Plots - All Classes](results/ribbon_all_classes.png)
+
+---
+
 ## Key Observations
 
 - All O(n²) algorithms confirm theoretical complexity with R² > 0.999 on random input.
@@ -117,3 +137,8 @@ Each plot shows:
 - `pandas`
 - `matplotlib`
 - `scipy`
+
+**R**
+- `ggplot2`
+- `dplyr`
+- `tidyr`
