@@ -208,3 +208,75 @@ for (cls in complexity_classes) {
   cat("  ribbon_", gsub("[^a-zA-Z0-9]", "_", cls), ".png\n", sep = "")
 }
 cat("  ribbon_sensitivity.png\n")
+# ── 9. Individual plot per algorithm ─────────────────────────────────────────
+# One ribbon plot per algorithm showing all 3 cases as separate lines + ribbon
+
+dir.create("individual", showWarnings = FALSE)
+
+algorithms_list <- sort(unique(df$algorithm))
+
+for (algo in algorithms_list) {
+  df_algo <- df %>% filter(algorithm == algo)
+  cls     <- unique(df_algo$complexity)
+  color   <- algo_colors[algo]
+
+  # Cases present for this algorithm
+  cases_present <- unique(df_algo$case)
+
+  # Per-case lines + overall ribbon (min/max across cases)
+  df_ribbon <- df_algo %>%
+    group_by(n) %>%
+    summarise(
+      mean_time = mean(time_ms),
+      min_time  = min(time_ms),
+      max_time  = max(time_ms),
+      .groups   = "drop"
+    )
+
+  case_colors <- c(
+    "random"   = "#2196F3",
+    "sorted"   = "#4CAF50",
+    "reversed" = "#F44336"
+  )
+
+  p <- ggplot() +
+    # Ribbon: spread between min and max case
+    geom_ribbon(
+      data = df_ribbon,
+      aes(x = n, ymin = min_time, ymax = max_time),
+      fill = color, alpha = 0.2, color = NA
+    ) +
+    # Mean line
+    geom_line(
+      data = df_ribbon,
+      aes(x = n, y = mean_time),
+      color = color, linewidth = 1.4, linetype = "dashed"
+    ) +
+    # Individual case lines
+    geom_line(
+      data = df_algo,
+      aes(x = n, y = time_ms, color = case),
+      linewidth = 0.9
+    ) +
+    scale_color_manual(
+      values = case_colors,
+      name   = "Case",
+      labels = c("random" = "Random", "sorted" = "Sorted", "reversed" = "Reversed")
+    ) +
+    scale_x_continuous(labels = fmt_n) +
+    scale_y_continuous(labels = scales::comma) +
+    labs(
+      title    = paste0(algo, "  [", cls, "]  — Time per Case & Mean"),
+      subtitle = "Solid lines = individual cases  |  Dashed = mean  |  Shaded = min/max spread",
+      x        = "n  (input size)",
+      y        = "time_ms"
+    ) +
+    theme_sorting()
+
+  # Clean filename
+  fname <- paste0("individual/", gsub("[^a-zA-Z0-9]", "_", algo), ".png")
+  ggsave(fname, p, width = 10, height = 5, dpi = 130, bg = "#0d0d0d")
+  cat("Saved:", fname, "\n")
+}
+
+cat("\nDone! Generated", length(algorithms_list), "individual plots in individual/\n")
